@@ -1,0 +1,101 @@
+version: '3'
+
+services:
+  db_mongo:
+    image: mongo:latest
+    container_name: db_mongo
+    ports: 
+      - "27017:27017"
+    networks:
+      - backend_db_network
+    volumes:
+      - mongo_volume_data:/data/db
+  frontend:
+    build:
+      context: ./Dashboard_FrontEnd-main
+      dockerfile: Dockerfile
+    container_name: frontend
+    env_file: ./Dashboard_FrontEnd-main/.env
+    ports: 
+      - "1000:5001"
+    networks:
+      - frontend_back_network
+    depends_on:
+      - read_api
+      - update_api
+      - create_api
+      - delete_api
+  read_api:
+    build:
+      context: ./read_app_microservices-main
+      dockerfile: Dockerfile
+    container_name: read_api
+    env_file: ./read_app_microservices-main/.env
+    ports: 
+      - "3000:5000"
+    networks:
+      - backend_db_network
+      - frontend_back_network
+    depends_on:
+      - db_mongo
+  log_api:
+    build:
+      context: ./log_app_microservices-main
+      dockerfile: Dockerfile
+    container_name: log_api
+    env_file: ./log_app_microservices-main/.env
+    ports: 
+      - "5001:5000"
+    networks:
+      - backend_db_network
+      - frontend_back_network
+    depends_on:
+      - db_mongo
+  create_api:
+    build:
+      context: ./create_app_microservices-main
+      dockerfile: Dockerfile
+    container_name: create_api
+    env_file: ./create_app_microservices-main/.env
+    ports: 
+      - "2000:3001"
+    networks:
+      - backend_db_network
+      - frontend_back_network
+    depends_on:
+      - db_mongo
+  update_api:
+    build:
+      context: ./update_app_microservices-main
+      dockerfile: Dockerfile
+    container_name: update_api
+    env_file: ./update_app_microservices-main/.env
+    ports: 
+      - "4000:3002"
+    networks:
+      - backend_db_network
+      - frontend_back_network
+    depends_on:
+      - db_mongo
+  delete_api:
+    build:
+      context: ./delete_app_microservices-main
+      dockerfile: Dockerfile
+    container_name: delete_api
+    env_file: ./delete_app_microservices-main/.env
+    ports: 
+      - "5000:5000"
+    networks:
+      - backend_db_network
+      - frontend_back_network
+    depends_on:
+      - db_mongo
+
+networks:
+  backend_db_network:
+    driver: bridge
+  frontend_back_network:
+    driver: bridge
+
+volumes:
+  mongo_volume_data:
